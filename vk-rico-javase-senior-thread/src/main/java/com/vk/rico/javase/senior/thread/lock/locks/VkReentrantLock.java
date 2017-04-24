@@ -99,7 +99,7 @@ public class VkReentrantLock implements Lock, java.io.Serializable {
 		private static final long serialVersionUID = 7316153563782823691L;
 
 		/**
-		 * 尝试直接闯入（分公平锁有闯入现象），闯入失败时，执行acquire方法
+		 * 尝试直接闯入（非公平锁有闯入现象），闯入失败时，执行acquire方法
 		 */
 		final void lock() {
 			if (compareAndSetState(0, 1)) {
@@ -124,6 +124,9 @@ public class VkReentrantLock implements Lock, java.io.Serializable {
 			acquire(1);
 		}
 
+		/**
+		 * tryAcquire方法的公平版本，
+		 */
 		/**
 		 * Fair version of tryAcquire. Don't grant access unless recursive call
 		 * or no waiters or is first.

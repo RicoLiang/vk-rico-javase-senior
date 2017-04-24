@@ -1,0 +1,19 @@
+在baudu中搜索关键词：abstractqueuedsynchronizer 深入理解
+
+博客一（暂时不要看）
+http://www.cnblogs.com/xingele0917/p/4284228.html
+
+博客二（重点）
+http://blog.csdn.net/pfnie/article/details/53191892
+
+博客三
+http://ifeve.com/jdk1-8-abstractqueuedsynchronizer/
+http://ifeve.com/jdk1-8-abstractqueuedsynchronizer-part2/
+
+
+阅读以上博客的总结：
+1）、锁的语义：用 synchronized关键字编写程序测试。
+	  可重入、内存可见、条件队列（即阻塞队列）、闯入（多个线程等待同一把锁，当锁变成可用状态时，并不会按照线程请求锁的顺序来获得锁，是随机的）
+	
+	
+	

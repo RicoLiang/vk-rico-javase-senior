@@ -298,6 +298,10 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
+	 * 等待队列节点类（即Node类）
+	 */
+
+	/**
 	 * Wait queue node class.
 	 *
 	 * <p>
@@ -379,8 +383,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 */
 	static final class Node {
 		/** Marker to indicate a node is waiting in shared mode */
+		/** 在共享模式中，节点的等待标记（即指示节点正在等待） */
 		static final Node SHARED = new Node();
-		/** Marker to indicate a node is waiting in exclusive mode */
+		/** 在独占模式中，节点的等待标记（即指示节点正在等待） */
 		static final Node EXCLUSIVE = null;
 
 		/** waitStatus value to indicate thread has cancelled */
@@ -609,12 +614,12 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
-	 * Sets head of queue to be node, thus dequeuing. Called only by acquire
-	 * methods. Also nulls out unused fields for sake of GC and to suppress
-	 * unnecessary signals and traversals.
-	 *
+	 * <p>
+	 * 设置队列的头节点，该方法只被acquire方法调用；将Node中不再使用的属性设置为null值，是为了GC和阻止不必要的信号和遍历
+	 * </p>
+	 * 
 	 * @param node
-	 *            the node
+	 *            Node节点
 	 */
 	private void setHead(Node node) {
 		head = node;
@@ -1172,6 +1177,12 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
+	 * 以独占模式获取对象，忽略中断。通过至少调用一次
+	 * tryAcquire(int)来实现此方法，若tryAcquire(int)方法返回true，则成功并返回。否则在成功之前，一直调用
+	 * tryAcquire(int)将线程加入队列，线程可能重复被阻塞或不被阻塞。可以使用此方法来实现 Lock.lock() 方法。
+	 */
+
+	/**
 	 * Acquires in exclusive mode, ignoring interrupts. Implemented by invoking
 	 * at least once {@link #tryAcquire}, returning on success. Otherwise the
 	 * thread is queued, possibly repeatedly blocking and unblocking, invoking
@@ -1184,8 +1195,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 *            represent anything you like.
 	 */
 	public final void acquire(int arg) {
-		if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+		if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) {
 			selfInterrupt();
+		}
 	}
 
 	/**

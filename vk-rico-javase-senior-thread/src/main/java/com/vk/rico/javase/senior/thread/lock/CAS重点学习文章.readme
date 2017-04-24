@@ -1,0 +1,24 @@
+重点是sun.misc.Unsafe类
+
+http://www.cnblogs.com/xrq730/p/4976007.html
+
+
+Java中Unsafe类详解
+http://www.cnblogs.com/mickole/articles/3757278.html
+
+JAVA并发编程学习笔记之Unsafe类
+http://blog.csdn.net/aesop_wubo/article/details/7537278
+
+jdk1.8中的sun源码包下载（知乎）
+https://www.zhihu.com/question/41531114
+http://www.docjar.com/docs/api/sun/misc/Unsafe.html
+
+sun.misc.Unsafe的理解
+http://www.cnblogs.com/chenpi/p/5389254.html
+
+Unsafe 类的API说明，功能强大。
+http://blog.csdn.net/dagigi/article/details/7199427
+
+Unsafe 源码解析
+http://blog.csdn.net/alex19881006/article/details/24646365
+

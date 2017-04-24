@@ -19,7 +19,7 @@ class LoggingWidget extends Widget {
 	}
 }
 
-public class VkLock {
+public class VkLockTester {
 
 	public static void main(String[] args) {
 		// Lock
