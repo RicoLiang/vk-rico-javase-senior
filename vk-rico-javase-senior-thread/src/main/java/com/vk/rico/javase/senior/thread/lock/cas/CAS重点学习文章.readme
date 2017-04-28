@@ -22,3 +22,5 @@ http://blog.csdn.net/dagigi/article/details/7199427
 Unsafe 源码解析
 http://blog.csdn.net/alex19881006/article/details/24646365
 
+CAS操作类sun.misc.Unsafe。Unsafe类提供了硬件级别的原子操作，allocateInstance方法，不调用构造方法生成对象。
+http://ifeve.com/sun-misc-unsafe/

@@ -1,13 +1,14 @@
 package com.vk.rico.javase.senior.thread.lock;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 /**
  * sun.misc.Unsafe源码
  * 
  * @author liangxf
  *
  */
-import java.security.*;
-import java.lang.reflect.*;
+import java.security.ProtectionDomain;
 
 import sun.reflect.CallerSensitive;
 import sun.reflect.Reflection;
@@ -64,8 +65,8 @@ public final class VkUnsafe {
 	 * 
 	 * </blockquote>
 	 *
-	 * (It may assist compilers to make the local variable be
-	 * <code>final</code>.)
+	 * (It may assist compilers to make the local variable be <code>final</code>
+	 * .)
 	 *
 	 * @exception SecurityException
 	 *                if a security manager exists and its
@@ -75,7 +76,8 @@ public final class VkUnsafe {
 	@CallerSensitive
 	public static VkUnsafe getUnsafe() {
 		Class<?> caller = Reflection.getCallerClass();
-		if (!VM.isSystemDomainLoader(caller.getClassLoader()))
+		// TODO:VKVM暂时不报错
+		if (!VKVM.isSystemDomainLoader(caller.getClassLoader()))
 			throw new SecurityException("Unsafe");
 		return theUnsafe;
 	}
