@@ -457,13 +457,10 @@ public interface VkCondition extends Condition {
 	boolean awaitUntil(Date deadline) throws InterruptedException;
 
 	/**
-	 * Wakes up one waiting thread.
-	 *
+	 * 唤醒一个等待线程。
 	 * <p>
-	 * If any threads are waiting on this condition then one is selected for
-	 * waking up. That thread must then re-acquire the lock before returning
-	 * from {@code await}.
-	 *
+	 * 如果所有的线程都在等待此条件，则选择其中的一个唤醒。在从 await 返回之前，该线程必须重新获取锁。 <br/>
+	 * 相当于notify()方法
 	 * <p>
 	 * <b>Implementation Considerations</b>
 	 *
@@ -477,13 +474,11 @@ public interface VkCondition extends Condition {
 	void signal();
 
 	/**
-	 * Wakes up all waiting threads.
+	 * 唤醒所有等待线程。
 	 *
 	 * <p>
-	 * If any threads are waiting on this condition then they are all woken up.
-	 * Each thread must re-acquire the lock before it can return from
-	 * {@code await}.
-	 *
+	 * 如果所有的线程都在等待此条件，则唤醒所有线程。在从 await 返回之前，每个线程都必须重新获取锁。<br/>
+	 * 相当于notifyAll()方法
 	 * <p>
 	 * <b>Implementation Considerations</b>
 	 *

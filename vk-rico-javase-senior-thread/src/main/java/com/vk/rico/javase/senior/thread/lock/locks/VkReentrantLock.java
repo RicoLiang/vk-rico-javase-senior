@@ -374,41 +374,21 @@ public class VkReentrantLock implements Lock, java.io.Serializable {
 	}
 
 	/**
-	 * Returns a {@link Condition} instance for use with this {@link Lock}
-	 * instance.
-	 *
+	 * 返回用来与此 Lock实例一起使用的 Condition实例。
 	 * <p>
-	 * The returned {@link Condition} instance supports the same usages as do
-	 * the {@link Object} monitor methods ({@link Object#wait() wait},
-	 * {@link Object#notify notify}, and {@link Object#notifyAll notifyAll})
-	 * when used with the built-in monitor lock.
-	 *
+	 * 在使用内置监视器锁时，返回的 Condition实例支持与 Object的监视器方法（wait、notify 和 notifyAll）相同的用法。
+	 * </p>
 	 * <ul>
-	 *
-	 * <li>If this lock is not held when any of the {@link Condition}
-	 * {@linkplain Condition#await() waiting} or {@linkplain Condition#signal
-	 * signalling} methods are called, then an
-	 * {@link IllegalMonitorStateException} is thrown.
-	 *
-	 * <li>When the condition {@linkplain Condition#await() waiting} methods are
-	 * called the lock is released and, before they return, the lock is
-	 * reacquired and the lock hold count restored to what it was when the
-	 * method was called.
-	 *
-	 * <li>If a thread is {@linkplain Thread#interrupt interrupted} while
-	 * waiting then the wait will terminate, an {@link InterruptedException}
-	 * will be thrown, and the thread's interrupted status will be cleared.
-	 *
-	 * <li>Waiting threads are signalled in FIFO order.
-	 *
-	 * <li>The ordering of lock reacquisition for threads returning from waiting
-	 * methods is the same as for threads initially acquiring the lock, which is
-	 * in the default case not specified, but for <em>fair</em> locks favors
-	 * those threads that have been waiting the longest.
-	 *
+	 * <li>在调用 Condition、waiting 或 signalling这些方法中的任意一个方法时，如果没有保持此锁，则将抛出
+	 * IllegalMonitorStateException。</li>
+	 * <li>在调用 waiting 条件方法时，将释放锁，并在这些方法返回之前，重新获取该锁，将锁保持计数恢复为调用方法时所持有的值。</li>
+	 * <li>如果线程在等待时被中断，则等待将终止，并将抛出 InterruptedException，清除线程的中断状态。</li>
+	 * <li>等待线程按 FIFO 顺序收到信号。</li>
+	 * <li>等待方法返回的线程重新获取锁的顺序与线程最初获取锁的顺序相同，在默认情况下，未指定此顺序，但对于公平
+	 * 锁，它们更倾向于那些等待时间最长的线程。</li>
 	 * </ul>
 	 *
-	 * @return the Condition object
+	 * @return Condition 对象
 	 */
 	public Condition newCondition() {
 		return sync.newCondition();

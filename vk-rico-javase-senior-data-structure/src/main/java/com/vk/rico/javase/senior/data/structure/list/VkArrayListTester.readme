@@ -31,20 +31,28 @@ ArrayList特性：
 		思考：Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = null时，以上代码报什么错？
 		
 	3)、	扩容
-		扩容时，需要将就数组中元素拷贝到新数组中，因此频繁扩容，会影响ArrayList的效率。
+		扩容时，需要将旧数组中元素拷贝到新数组中，因此频繁扩容，会影响ArrayList的效率。
 		新数组长度  = 原Object[]数组长度  + 原Object[]数组长度的1/2。
 		建议数组的初始容量是2的倍数，这样扩容后，新数组的长度和旧数组的的长度比值是3比2。
+		
+		数组是固定长度的连续存储空间的一维线性表，因此扩容只能创建新的数组，并把旧数组的内容拷贝到新数组，再返回新数组，以此来实现扩容。
 	
 	4)、size属性
 	 	ArrayList里面有个size属性，private int size。
 	 	这个属性表示ArrayList里面Object[]数组填充的个数，但并不是Object[]数组的长度，如ArrayList的size方法返回2，表示ArrayList里面有两个元素（即ArrayList中Object[]数组的前两个位置被填充了数据），
 	 	但Object[]数组的长度（即length属性）可能是10（数组后续的8个位置没有填充数据，为null）。
+	 	
+	 	数组始终是从前往后顺序占用小标位置的（即存储数据），因此总数组最尾端添加、删除元素都是比较高效的；
+		 新增、删除元素（即add、remove等方法）会修改size的值；但更新元素（元素可能为null）时，不会更新size的值。
 	
 	5)、ArrayList中的方法没有做同步，因此是非线程安全的。
 	6)、ArrayList中元素位置的移动，是通过拷贝数组的方式来实现的。
 	7)、从ArrayList中间新增元素时，数组中的位置需要向后移动，可能会进行扩容。
 	8)、从ArrayList中间删除元素时，数组中的位置需要向前移动，数组的元素总个数不会发生更改（即length不会，因为Java中没有动态数组），只是将某个位置置为null。
 	9)、修改ArrayList中的元素时，不会移动数组元素的位置。
+	10)、数组小标的移动
+		通过调用System.arraycopy(Object src,  int  srcPos, Object dest, int destPos, int length);方法来实现的，这个方法是数组拷贝所调用的方法（扩容就是调用了该方法进行的数组拷贝），
+		将旧数组中的元素拷贝到新数组中（从新数组的指定小标位置开始拷贝）
 	
 总结：
 ArrayList是线性表的"顺序存储"方式的实现，即顺序表

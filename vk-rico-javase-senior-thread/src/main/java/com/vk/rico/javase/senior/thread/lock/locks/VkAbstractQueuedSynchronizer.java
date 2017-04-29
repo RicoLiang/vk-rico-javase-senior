@@ -300,7 +300,6 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	/**
 	 * 等待队列节点类（即Node类）
 	 */
-
 	/**
 	 * Wait queue node class.
 	 *
@@ -1463,6 +1462,20 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		Node h, s;
 		return (h = head) != null && (s = h.next) != null && !s.isShared() && s.thread != null;
 	}
+
+	/**
+	 * 查询是否有线程在等待获得锁，且等待时间超过当前线程。
+	 * 
+	 * <p>
+	 * 调用该方法等价于如下代码（但该方法可能更高效）：
+	 * 
+	 * <pre>
+	 *  {@code
+	 * getFirstQueuedThread() != Thread.currentThread() &&
+	 * hasQueuedThreads()}
+	 * </pre>
+	 * </p>
+	 */
 
 	/**
 	 * Queries whether any threads have been waiting to acquire longer than the

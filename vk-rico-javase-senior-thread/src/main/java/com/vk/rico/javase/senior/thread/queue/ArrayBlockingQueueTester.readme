@@ -1,0 +1,25 @@
+这是一个典型的"有界缓存区"，固定大小的数组在其中保持生产者插入的元素和使用者提取的元素。一旦创建了这样的缓存区，就不能再增加其容量。试图向已满队列中放入元素会导致操作受阻塞；试图从空队列中提取元素将导致类似阻塞。
+
+解读：
+	1)、与ArrayList不同，ArrayBlockingQueue不会扩容，但他们内部都是一个对象数组。
+	2)、不能存储null值
+
+/*对象数组*/
+final Object[] items;
+
+/*队列元素的个数，当count值等于items.length时，表示队列已满*/
+int count;
+ 
+/*将指定的元素插入到此队列的尾部（如果立即可行且不会超过该队列的容量），在成功时返回 true，如果此队列已满，则抛出 IllegalStateException。*/
+public boolean add(E e) {
+    //内部调用了offer(E e)方法
+    return super.add(e);
+}
+
+/*将指定的元素插入到此队列的尾部（如果立即可行且不会超过该队列的容量），在成功时返回 true，如果此队列已满，则返回 false。此方法通常要优于 add(E)方法，后者可能无法插入元素，而只是抛出一个异常。*/
+public boolean offer(E e);
+
+/*将指定的元素插入此队列的尾部，如果该队列已满，则等待可用的空间。*/
+public void put(E e) throws InterruptedException
+
+ 
