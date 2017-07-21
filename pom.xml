@@ -24,6 +24,8 @@
 		<module>vk-rico-javase-senior-data-structure</module>
 		<module>vk-rico-javase-senior-reflex</module>
 		<module>vk-rico-javase-senior-annotation</module>
+		<module>vk-rico-javase-senior-guava</module>
+		<module>vk-rico-javase-senior-bean</module>
 	</modules>
 	<build>
 		<finalName>uebWmsClient</finalName>

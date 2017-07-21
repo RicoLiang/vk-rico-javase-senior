@@ -16,7 +16,7 @@ public class VkThreadPool {
 		ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 6, 1L, TimeUnit.DAYS, queue, new CallerRunsPolicy());
 
 		// 当阻塞队列已满，但线程池容量还没有达到最大值，且线程池中没有空闲的线程，这时再往线程池提交任务，则新开一个线程来执行该任务，而不是将该任务放入队列中
-		// 当阻塞队列已满，但线程池容量还没有达到最大值，但线程池中有空闲的线程（空闲线程回处理队列中的一个任务，这时队列中有空闲的位置），这时再往线程池提交任务，则将该任务放入队列中
+		// 当阻塞队列已满，但线程池容量还没有达到最大值，但线程池中有空闲的线程（空闲线程会处理队列中的一个任务，这时队列中有空闲的位置），这时再往线程池提交任务，则将该任务放入队列中
 		for (int i = 0; i < 10; i++) {
 			executor.execute(new Thread(new UebSendData2MqTask(), "TestThread".concat(i + "")));
 			int threadSize = queue.size();

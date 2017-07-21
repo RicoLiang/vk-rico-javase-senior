@@ -138,6 +138,8 @@ public class VkHashMap<K, V> extends VkAbstractMap<K, V> implements Map<K, V>, C
 	 * incorporate impact of the highest bits that would otherwise never be used
 	 * in index calculations because of table bounds.
 	 */
+	// 参考文章：http://blog.csdn.net/fan2012huan/article/details/51097331
+	// 参考文章：http://blog.csdn.net/huzhigenlaohu/article/details/51802457
 	static final int hash(Object key) {
 		int h;
 		return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);

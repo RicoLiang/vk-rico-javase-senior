@@ -12,7 +12,7 @@ ThreadPoolExecutor(int corePoolSize,
 corePoolSize核心线程数，线程池中始终保持的线程数，即使这些线程处于空闲状态，也不会被终止，除非allowCoreThreadTimeOut为true。
     executor.allowCoreThreadTimeOut(true);//executor是线程池对象，allowCoreThreadTimeOut默认值为false。
 maximumPoolSize最大线程数
-keepAliveTime当线程池中的线程数大于核心线程数时，多余的线程空闲时间（即在keepAliveTime时间内，多余的线程不会被终止）
+keepAliveTime当线程池中的线程数大于核心线程数时，多余的线程空闲时间（即在keepAliveTime时间内，多余的线程不会被终止，也即存活时间）
 unit是TimeUnit枚举值，表示keepAliveTime的时间单位
 workQueue工作队列，用于保存任务，即当任务被执行之前，就保存在该工作队列中；该队列只保存execute方法提交的Runnable任务；execute方法是线程池的方法，用于提交任务，任务必须是Runnable的实现类。
 threadFactory线程工厂，当线程池创建新的线程时，就是通过该工厂来创建的。
@@ -29,10 +29,10 @@ Executes the given task sometime in the future. The task may execute in a new th
 */
 public void execute(Runnable command);
 当试图通过 excute方法将一个 Runnable任务添加到线程池中时，按照如下顺序来处理：
-1)、如果线程池中的线程数量少于 corePoolSize，即使线程池中有空闲线程，也会创建一个新的线程来执行新添加的任务；
+1)、如果线程池中的线程数量少于 corePoolSize，即使线程池中有空闲线程，也会创建一个新的线程来执行新添加的任务；而不会将任务加入到阻塞队列中；
 2)、如果线程池中的线程数量大于等于 corePoolSize，但缓冲队列 workQueue未满，则将新添加的任务放到 workQueue中，按照 FIFO的原则依次等待执行（线程池中有线程空闲出来后依次将缓冲队列中的任务交付给空闲的线程执行）；
 3)、如果线程池中的线程数量大于等于 corePoolSize，且缓冲队列 workQueue已满，但线程池中的线程数量小于 maximumPoolSize，则会创建新的线程来处理被添加的任务；
-4)、如果线程池中的线程数量等于 maximumPoolSize，切工作队列也满了，即线程池满了；则由RejectedExecutionHandler处理
+4)、如果线程池中的线程数量等于 maximumPoolSize，且工作队列也满了，即线程池满了；则由RejectedExecutionHandler处理
 线程池满了：线程数量等于 maximumPoolSize，且工作队列也满了。
 RejectedExecutionHandler有以下四个子类：
 	AbortPolicy 任务执行失败，直接抛出异常，即告诉调用者"我不能再接受任务了"。
