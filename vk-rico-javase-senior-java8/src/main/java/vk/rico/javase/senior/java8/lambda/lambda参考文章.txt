@@ -1,0 +1,2 @@
+http://www.cnblogs.com/feichexia/archive/2012/11/15/Java8_LambdaExpression.html
+http://developer.51cto.com/art/201304/388411.htm

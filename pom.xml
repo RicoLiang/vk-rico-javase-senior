@@ -26,6 +26,7 @@
 		<module>vk-rico-javase-senior-annotation</module>
 		<module>vk-rico-javase-senior-guava</module>
 		<module>vk-rico-javase-senior-bean</module>
+		<module>vk-rico-javase-senior-java8</module>
 	</modules>
 	<build>
 		<finalName>uebWmsClient</finalName>
