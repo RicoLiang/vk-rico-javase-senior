@@ -1,7 +1,7 @@
 
 # Java注解
 ## 参考资料
-[全面解析Java注解](http://blog.csdn.net/northleaf/article/details/50528805)
+[全面解析Java注解](http://blog.csdn.net/northleaf/article/details/50528805)<br/>
 [深入理解Java注解](http://www.cnblogs.com/peida/archive/2013/04/24/3036689.html)
 ## 分类
 ### 按运行机制分类
