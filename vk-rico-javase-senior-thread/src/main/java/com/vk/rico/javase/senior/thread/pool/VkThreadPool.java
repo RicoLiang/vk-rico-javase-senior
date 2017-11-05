@@ -17,7 +17,7 @@ public class VkThreadPool {
 
 		// 当阻塞队列已满，但线程池容量还没有达到最大值，且线程池中没有空闲的线程，这时再往线程池提交任务，则新开一个线程来执行该任务，而不是将该任务放入队列中
 		// 当阻塞队列已满，但线程池容量还没有达到最大值，但线程池中有空闲的线程（空闲线程会处理队列中的一个任务，这时队列中有空闲的位置），这时再往线程池提交任务，则将该任务放入队列中
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 12; i++) {
 			executor.execute(new Thread(new UebSendData2MqTask(), "TestThread".concat(i + "")));
 			int threadSize = queue.size();
 			System.out.println("线程队列大小为-->" + threadSize);
@@ -28,10 +28,17 @@ public class VkThreadPool {
 
 		// 线程池中正在运行的线程执行完毕（线程中不能调用sleep()，否则会抛java.lang.InterruptedException异常），阻塞队列中的任务全部被丢弃
 		// executor.shutdownNow();
+		 
+		UebSendData2MqTask u1 = new UebSendData2MqTask();
+		new Thread(u1).start();
+		new Thread(u1).start();
+		new Thread(u1).start();
+		new Thread(u1).start();
 	}
 }
 
 class UebSendData2MqTask implements Runnable {
+	private Object lock = new Object();
 	@Override
 	public void run() {
 		// synchronized (this) {
@@ -42,5 +49,17 @@ class UebSendData2MqTask implements Runnable {
 			e.printStackTrace();
 		}
 		// }
+		
+		this.a();
+	}
+	
+	public synchronized void a(){
+		this.b();
+	}
+	
+	public void b(){
+		synchronized (this) {
+			
+		}
 	}
 }

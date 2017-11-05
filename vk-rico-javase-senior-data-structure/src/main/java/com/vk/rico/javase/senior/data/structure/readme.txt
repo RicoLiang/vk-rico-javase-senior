@@ -1,5 +1,5 @@
 数据结构：
-	1)、hash
+	1)、hash（HashMap、HashTable）
 	2)、list
 	3)、set
 	4)、tree

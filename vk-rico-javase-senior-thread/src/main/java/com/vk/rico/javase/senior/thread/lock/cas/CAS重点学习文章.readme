@@ -1,7 +1,9 @@
 重点是sun.misc.Unsafe类
 
+2017-10-31增加的文章（重点）
 http://www.cnblogs.com/xrq730/p/4976007.html
-
+http://www.cnblogs.com/trytocatch/p/enhanced-cas-in-jdk8.html
+http://www.cnblogs.com/xrq730/p/5060921.html
 
 Java中Unsafe类详解
 http://www.cnblogs.com/mickole/articles/3757278.html
@@ -24,3 +26,7 @@ http://blog.csdn.net/alex19881006/article/details/24646365
 
 CAS操作类sun.misc.Unsafe。Unsafe类提供了硬件级别的原子操作，allocateInstance方法，不调用构造方法生成对象。
 http://ifeve.com/sun-misc-unsafe/
+
+
+
+

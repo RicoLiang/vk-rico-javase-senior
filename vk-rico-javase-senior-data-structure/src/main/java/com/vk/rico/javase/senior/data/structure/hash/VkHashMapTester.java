@@ -1,5 +1,7 @@
 package com.vk.rico.javase.senior.data.structure.hash;
 
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 import com.vk.rico.javase.senior.data.structure.hash.hashmap.VkHashMap;
