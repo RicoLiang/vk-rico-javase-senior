@@ -93,6 +93,11 @@ public class VkLockSupport {
 	private VkLockSupport() {
 	} // Cannot be instantiated.
 
+	/**
+	 * CAS方式设置Thread对象parkBlocker属性值
+	 * @param t 运行中的线程对象
+	 * @param arg 同步对象
+	 */
 	private static void setBlocker(Thread t, Object arg) {
 		// Even though volatile, hotspot doesn't need a write barrier here.
 		UNSAFE.putObject(t, parkBlockerOffset, arg);
@@ -115,6 +120,9 @@ public class VkLockSupport {
 	}
 
 	/**
+	 * 挂起当前运行中的线程（即当前线程释放CPU执行权）<br/>
+	 * 线程进入到"对象等待池"中，参考"线程状态"图.
+	 * 
 	 * Disables the current thread for thread scheduling purposes unless the
 	 * permit is available.
 	 *
@@ -139,15 +147,15 @@ public class VkLockSupport {
 	 * park in the first place. Callers may also determine, for example, the
 	 * interrupt status of the thread upon return.
 	 *
-	 * @param blocker
+	 * @param blocker 阻塞对象（即阻塞此线程的同步对象，也就是说当前运行的线程进入到该同步对象的"等待池"中）
 	 *            the synchronization object responsible for this thread parking
 	 * @since 1.6
 	 */
 	public static void park(Object blocker) {
-		Thread t = Thread.currentThread();
-		setBlocker(t, blocker);
-		UNSAFE.park(false, 0L);
-		setBlocker(t, null);
+		Thread t = Thread.currentThread(); // 当前线程
+		setBlocker(t, blocker); // 设置当前线程的同步对象（即当前运行中的线程进入到哪个同步对象的"等待池"中）
+		UNSAFE.park(false, 0L); // 挂起线程（即线程释放CPU执行权），直到unpark出现、线程被中断、timeout时间到期，timeout为0L表示永不过期
+		setBlocker(t, null); // 线程被唤醒后（不会马上执行，还需要获取独占锁），因此设置当前线程对象的parkBlocker属性值为null（即当前线程没有被同步对象阻塞）
 	}
 
 	/**
@@ -234,14 +242,15 @@ public class VkLockSupport {
 	}
 
 	/**
+	 * 获取当前线程所在的阻塞对象（即同步对象，）
 	 * Returns the blocker object supplied to the most recent invocation of a
 	 * park method that has not yet unblocked, or null if not blocked. The value
 	 * returned is just a momentary snapshot -- the thread may have since
 	 * unblocked or blocked on a different blocker object.
 	 *
 	 * @param t
-	 *            the thread
-	 * @return the blocker
+	 *            the thread 线程对象，不能为null
+	 * @return the blocker 同步对象
 	 * @throws NullPointerException
 	 *             if argument is null
 	 * @since 1.6

@@ -40,7 +40,7 @@ public class VkReentrantLock implements Lock, java.io.Serializable {
 				int nextc = c + acquires;
 				if (nextc < 0) // overflow
 					throw new Error("Maximum lock count exceeded");
-				setState(nextc);
+				setState(nextc);  // 当前线程占用了锁（锁可重入性），就不需要使用CAS方式来更新state的值了
 				return true;
 			}
 			return false;
@@ -48,7 +48,7 @@ public class VkReentrantLock implements Lock, java.io.Serializable {
 
 		protected final boolean tryRelease(int releases) {
 			int c = getState() - releases;
-			if (Thread.currentThread() != getExclusiveOwnerThread())
+			if (Thread.currentThread() != getExclusiveOwnerThread()) // 当前运行的线程并不是锁的占用者
 				throw new IllegalMonitorStateException();
 			boolean free = false;
 			if (c == 0) {
@@ -133,17 +133,21 @@ public class VkReentrantLock implements Lock, java.io.Serializable {
 		 */
 		protected final boolean tryAcquire(int acquires) {
 			final Thread current = Thread.currentThread();
-			int c = getState();
-			if (c == 0) {
-				if (!hasQueuedPredecessors() && compareAndSetState(0, acquires)) {
-					setExclusiveOwnerThread(current);
+			int c = getState(); // 获取当前锁的最新状态值（state字段被volatile修饰）
+			if (c == 0) { // 锁是空闲状态
+				/* 
+				 * 虽然此时此刻锁是空闲状态的，但是这是公平锁，既然是公平，就得讲究先来后到，
+	             * 看看有没有别人在队列中等了半天了
+	             */
+				if (!hasQueuedPredecessors() && compareAndSetState(0, acquires)) { // CAS更新state的值
+					setExclusiveOwnerThread(current); // 当前线程占有锁
 					return true;
 				}
-			} else if (current == getExclusiveOwnerThread()) {
-				int nextc = c + acquires;
+			} else if (current == getExclusiveOwnerThread()) { // 锁被当前线程占有
+				int nextc = c + acquires; // state值加1
 				if (nextc < 0)
 					throw new Error("Maximum lock count exceeded");
-				setState(nextc);
+				setState(nextc); // 当前线程占用了锁（锁可重入性），就不需要使用CAS方式来更新state的值了
 				return true;
 			}
 			return false;

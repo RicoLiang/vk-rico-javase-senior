@@ -1,0 +1,20 @@
+-verbose:gc
+
+------Java运行时数据区：程序计数器、Java虚拟机栈、本地方法栈、方法区、堆区------
+java虚拟机栈和本地方法栈大小：-Xss10m
+堆区大小：-Xms10m -Xmx10m
+方法区大小(运行时常量池大小)：-XX:PermSize=10m -XX:MaxPermSize=10m
+直接内存大小(NIO中使用)：-XX:MaxDirectMemorySize=10m
+
+------HotSpot参数使用的三种方式：
+-XX:+<option>开启option参数
+-XX:-<option>关闭option参数
+-XX:<option>=<value>将option参数的值设置为value
+
+------垃圾搜集器与内存分配策略
+-XX:+HeapDumpOnOutOfMemoryError：jvm出现内存溢出时Dump(转储)出当前的"内存堆转储快照文件"以便事后进行分析(内存映像分析工具)
+新生代大小：-Xmn10m
+打印GC信息,默认关闭：-XX:+PrintGC
+打印GC详细信息,默认关闭：-XX:+PrintGCDetails
+打印GC停顿时间,默认关闭：-XX:+PrintGCTimeStamps，如-XX:+PrintGCDetails -XX:+PrintGCTimeStamps
+将GC信息输入到指定文件中,默认输出到控制台：-Xloggc:<filename>，如-Xloggc:D:/gc.log

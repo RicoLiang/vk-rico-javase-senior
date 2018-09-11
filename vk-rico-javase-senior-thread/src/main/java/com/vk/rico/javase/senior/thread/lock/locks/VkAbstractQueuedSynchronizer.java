@@ -427,6 +427,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		volatile int waitStatus;
 
 		/**
+		 * 前驱节点的引用
+		 */
+		/**
 		 * Link to predecessor node that current node/thread relies on for
 		 * checking waitStatus. Assigned during enqueuing, and nulled out (for
 		 * sake of GC) only upon dequeuing. Also, upon cancellation of a
@@ -438,6 +441,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		 */
 		volatile Node prev;
 
+		/**
+		 * 后继节点的引用
+		 */
 		/**
 		 * Link to the successor node that the current node/thread unparks upon
 		 * release. Assigned during enqueuing, adjusted when bypassing cancelled
@@ -451,6 +457,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		 */
 		volatile Node next;
 
+		/**
+		 * 该Node所包装的线程
+		 */
 		/**
 		 * The thread that enqueued this node. Initialized on construction and
 		 * nulled out after use.
@@ -475,6 +484,8 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		}
 
 		/**
+		 * 返回当前Node的前驱Node<br/>
+		 * 
 		 * Returns previous node, or throws NullPointerException if null. Use
 		 * when predecessor cannot be null. The null check could be elided, but
 		 * is present to help the VM.
@@ -504,12 +515,20 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
+	 * 等待队列头结点（即 当前持有锁的线程），延迟加载<br/>
+	 * 除了初始化（CAS初始化），只能通过setHead方法来修改head的值<br/>
+	 * 注意：如果head存在，则head的waitStatus字段值不能是CANCELLED
+	 */
+	/**
 	 * Head of the wait queue, lazily initialized. Except for initialization, it
 	 * is modified only via method setHead. Note: If head exists, its waitStatus
 	 * is guaranteed not to be CANCELLED.
 	 */
 	private transient volatile Node head;
 
+	/**
+	 * 等待队列的尾部节点，延迟加载，仅通过Enq方法添加新的等待节点时才会修改tail
+	 */
 	/**
 	 * Tail of the wait queue, lazily initialized. Modified only via method enq
 	 * to add new wait node.
@@ -531,7 +550,8 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
-	 * 设置同步状态值，此操作具有 volatile 写的内存语义。
+	 * 设置同步状态值，此操作具有 volatile 写的内存语义。<b/>
+	 * 当前线程占用了锁（锁可重入性），就不需要使用CAS方式来更新state的值了
 	 * 
 	 * @param newState
 	 */
@@ -543,6 +563,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 * <p>
 	 * 如果当前状态值（即state值）等于预期值，则以原子方式将同步状态（即synchronization state）设置为给定的更新值。此操作具有
 	 * volatile读和写的内存语义。
+	 * </p>
+	 * <p>
+	 *   当锁空闲时，多个线程抢锁，则使用CAS方式更新state的值
 	 * </p>
 	 * <a href = "http://www.cnblogs.com/xrq730/p/4976007.html">CAS参考文章</a>
 	 * 
@@ -568,39 +591,46 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	static final long spinForTimeoutThreshold = 1000L;
 
 	/**
+	 * 采用自旋的方式入队，到这个方法只有两种可能：等待队列为空，或者有线程竞争入队<br/>
+	 * 自旋在这边的语义是：CAS设置tail过程中，竞争一次竞争不到，我就多次竞争，总会排到的<br/>
+	 * 
 	 * Inserts node into queue, initializing if necessary. See picture above.
 	 * 
 	 * @param node
 	 *            the node to insert
-	 * @return node's predecessor
+	 * @return node's predecessor（node参数的前驱节点）
 	 */
 	private Node enq(final Node node) {
 		for (;;) {
-			Node t = tail;
+			Node t = tail; //首先tail为null，因此需要初始化head
 			if (t == null) { // Must initialize
-				if (compareAndSetHead(new Node()))
-					tail = head;
+				if (compareAndSetHead(new Node())) // 返回false，则说明head不为null（其他的线程可能初始化或修改了head），这个时候head节点的waitStatus==0
+					tail = head; //此时tail、head是一样的值（因为此时链表中只有唯一的一个节点）
 			} else {
 				node.prev = t;
-				if (compareAndSetTail(t, node)) {
+				if (compareAndSetTail(t, node)) { // 把node作为tail（尾节点）
 					t.next = node;
-					return t;
+					return t; //返回CLH中的倒数第二个节点，即返回node的前驱节点
 				}
 			}
 		}
 	}
 
 	/**
+	 * 为当前线程和给定模式创建和排队节点<br/>
+	 * 创建一个新的Node，并加入到链表的尾端。
+	 */
+	/**
 	 * Creates and enqueues node for current thread and given mode.
 	 *
 	 * @param mode
 	 *            Node.EXCLUSIVE for exclusive, Node.SHARED for shared
-	 * @return the new node
+	 * @return the new node 返回新创建的Node(链表中的尾节点)
 	 */
 	private Node addWaiter(Node mode) {
-		Node node = new Node(Thread.currentThread(), mode);
+		Node node = new Node(Thread.currentThread(), mode); // 创建新的Node
 		// Try the fast path of enq; backup to full enq on failure
-		Node pred = tail;
+		Node pred = tail; //首先tail为null（因为创建AbstractQueuedSynchronizer对象时(new 子类())，tail成员变量为null）
 		if (pred != null) {
 			node.prev = pred;
 			if (compareAndSetTail(pred, node)) {
@@ -627,6 +657,7 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
+	 * 唤醒前驱Node <br/>
 	 * Wakes up node's successor, if one exists.
 	 *
 	 * @param node
@@ -772,6 +803,8 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
+	 * 当前线程没有抢到锁，是否需要挂起当前线程？<br/>
+	 * 
 	 * Checks and updates status for a node that failed to acquire. Returns true
 	 * if thread should block. This is the main signal control in all acquire
 	 * loops. Requires that pred == node.prev.
@@ -784,13 +817,21 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 */
 	private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
 		int ws = pred.waitStatus;
-		if (ws == Node.SIGNAL)
+		if (ws == Node.SIGNAL){ // 前驱节点的 waitStatus == -1 ，说明前驱节点状态正常，当前线程需要挂起，直接返回true
 			/*
 			 * This node has already set status asking a release to signal it,
 			 * so it can safely park.
 			 */
 			return true;
+		}
 		if (ws > 0) {
+			/* 前驱节点 waitStatus大于0 ，之前说过，大于0 说明前驱节点取消了排队。这里需要知道这点：
+			 * 进入阻塞队列排队的线程会被挂起，而唤醒的操作是由前驱节点完成的。
+			 * 所以下面这块代码说的是将当前节点的prev指向waitStatus<=0的节点，
+			 * 简单说，就是为了找个好爹，因为你还得依赖它来唤醒呢，如果前驱节点取消了排队，
+			 * 找前驱节点的前驱节点做爹，往前循环总能找到一个好爹的
+			 */
+			
 			/*
 			 * Predecessor was cancelled. Skip over predecessors and indicate
 			 * retry.
@@ -800,6 +841,12 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 			} while (pred.waitStatus > 0);
 			pred.next = node;
 		} else {
+			/*
+			 * 前驱节点的waitStatus不等于-1和1，那也就是只可能是0，-2，-3
+			 * 在我们前面的源码中，都没有看到有设置waitStatus的，所以每个新的node入队时，waitStatu都是0
+			 * 用CAS将前驱节点的waitStatus设置为Node.SIGNAL(也就是-1)
+             */
+             
 			/*
 			 * waitStatus must be 0 or PROPAGATE. Indicate that we need a
 			 * signal, but don't park yet. Caller will need to retry to make
@@ -823,7 +870,7 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 * @return {@code true} if interrupted
 	 */
 	private final boolean parkAndCheckInterrupt() {
-		VkLockSupport.park(this);
+		VkLockSupport.park(this); // 当前运行的线程进入到this对象的"等待池"中（即this对象是同步对象），等待被唤醒，this是当前线程占有的锁对象
 		return Thread.interrupted();
 	}
 
@@ -836,11 +883,14 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 */
 
 	/**
+	 * 如果node已经是阻塞队列的第一个节点（阻塞队列不包括head节点）时，就尝试获取锁（锁空闲就采用CAS获取锁、当前线程已经占有锁（可重入性））<br/>
+	 * 如果node不是阻塞队列的第一个节点、或者获取锁失败，当前编程挂起（即node中的thread阻塞，同步对象时当前锁）
+	 * 
 	 * Acquires in exclusive uninterruptible mode for thread already in queue.
 	 * Used by condition wait methods as well as acquire.
 	 *
 	 * @param node
-	 *            the node
+	 *            the node 独占模式的Node，该Node已经通过addWaiter方法加入到了CLH链表的尾部
 	 * @param arg
 	 *            the acquire argument
 	 * @return {@code true} if interrupted while waiting
@@ -857,6 +907,8 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 					failed = false;
 					return interrupted;
 				}
+				
+				//shouldParkAfterFailedAcquire(p, node)返回false的时候不直接挂起线程：是为了应对在经过这个方法后，node已经是head的直接后继节点了（并且node的前驱节点已经释放了锁）
 				if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
 					interrupted = true;
 			}
@@ -1176,7 +1228,8 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	}
 
 	/**
-	 * 以独占模式获取对象，忽略中断。通过至少调用一次
+	 * 以独占模式获取对象，忽略中断。通常至少调用一次<br/>
+	 * 独占模式的语义：同一时刻，只能有一个线程占有锁<br/>
 	 * tryAcquire(int)来实现此方法，若tryAcquire(int)方法返回true，则成功并返回。否则在成功之前，一直调用
 	 * tryAcquire(int)将线程加入队列，线程可能重复被阻塞或不被阻塞。可以使用此方法来实现 Lock.lock() 方法。
 	 */
@@ -1525,6 +1578,10 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 * @return {@code true} if there is a queued thread preceding the current
 	 *         thread, and {@code false} if the current thread is at the head of
 	 *         the queue or the queue is empty
+	 *         
+	 *         当前线程的前面已有其他线程在排队，则返回true;
+	 *         排队队列为空、当前线程在队列最前面，则返回false
+	 *         
 	 * @since 1.7
 	 */
 	public final boolean hasQueuedPredecessors() {
@@ -1534,6 +1591,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		Node t = tail; // Read fields in reverse initialization order
 		Node h = head;
 		Node s;
+		
+		// h != t，不可能为false，即head和tail不可能是同一个对象
+		// h.next不可能为null
 		return h != t && ((s = h.next) == null || s.thread != Thread.currentThread());
 	}
 
@@ -1642,9 +1702,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 * @return true if is reacquiring
 	 */
 	final boolean isOnSyncQueue(Node node) {
-		if (node.waitStatus == Node.CONDITION || node.prev == null)
+		if (node.waitStatus == Node.CONDITION || node.prev == null) // node节点还没有被移到阻塞队列中，直接返回false
 			return false;
-		if (node.next != null) // If has successor, it must be on queue
+		if (node.next != null) // If has successor, it must be on queue，node节点的后继节点不为null，则说明node是阻塞队列中间的某个节点，直接返回true
 			return true;
 		/*
 		 * node.prev can be non-null, but not yet on queue because the CAS to
@@ -1664,29 +1724,30 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 */
 	private boolean findNodeFromTail(Node node) {
 		Node t = tail;
-		for (;;) {
-			if (t == node)
+		for (;;) { // 从阻塞队列的尾部往前遍历，直到head节点
+			if (t == node)  // node已经转移到阻塞队列中，直接返回true
 				return true;
-			if (t == null)
+			if (t == null) // 到达head节点时，还没有node节点，则说明node节点尚未转移到阻塞队列中，直接返回false
 				return false;
 			t = t.prev;
 		}
 	}
 
 	/**
+	 * 将node从条件队列移动到阻塞队列（队列尾端）
 	 * Transfers a node from a condition queue onto sync queue. Returns true if
 	 * successful.
 	 * 
 	 * @param node
 	 *            the node
 	 * @return true if successfully transferred (else the node was cancelled
-	 *         before signal)
+	 *         before signal)  如果移动成功，则返回true；node节点在signal之前就已经取消了，则返回false
 	 */
 	final boolean transferForSignal(Node node) {
 		/*
 		 * If cannot change waitStatus, the node has been cancelled.
 		 */
-		if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
+		if (!compareAndSetWaitStatus(node, Node.CONDITION, 0)) // CAS方式把node的waitStatus属性值更改为0
 			return false;
 
 		/*
@@ -1695,10 +1756,13 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		 * to set waitStatus fails, wake up to resync (in which case the
 		 * waitStatus can be transiently and harmlessly wrong).
 		 */
-		Node p = enq(node);
-		int ws = p.waitStatus;
-		if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
-			VkLockSupport.unpark(node.thread);
+		Node p = enq(node); // 将node节点加入到阻塞队列的尾端（即把node从条件队列移到阻塞队列中，以获取锁），返回倒数第二个节点（即node的前驱节点）
+		int ws = p.waitStatus; // 前驱节点的waitStatus值
+		
+		// ws > 0 说明 node 在阻塞队列中的前驱节点取消了等待锁，直接唤醒 node 对应的线程。
+	    // 如果 ws <= 0, 那么 compareAndSetWaitStatus将会被调用，节点入队后，需要把前驱节点的状态设为 Node.SIGNAL(-1)
+		if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL)) // 前驱节点取消等待（即取消等待锁），
+			VkLockSupport.unpark(node.thread); // 唤醒node的线程，此时node的线程还不会运行，还需要获取锁
 		return true;
 	}
 
@@ -1711,8 +1775,8 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	 * @return true if cancelled before the node was signalled
 	 */
 	final boolean transferAfterCancelledWait(Node node) {
-		if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
-			enq(node);
+		if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) { // CAS方式设置Node的waitStatus属性值为0（waitStatus值从-2更改为0）
+			enq(node); // 当前线程（Node节点）加入到"阻塞队列"的尾部
 			return true;
 		}
 		/*
@@ -1720,8 +1784,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		 * its enq(). Cancelling during an incomplete transfer is both rare and
 		 * transient, so just spin.
 		 */
-		while (!isOnSyncQueue(node))
-			Thread.yield();
+		while (!isOnSyncQueue(node)){ // 重复判断node节点是否已经被转移到阻塞队列中，直到判断成功
+			Thread.yield(); // 让出CPU执行权给同优先级的线程运行，当前线程进入可运行状态
+		}
 		return false;
 	}
 
@@ -1736,7 +1801,7 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	final int fullyRelease(Node node) {
 		boolean failed = true;
 		try {
-			int savedState = getState();
+			int savedState = getState(); // 获取到锁最新状态（state属性值）
 			if (release(savedState)) {
 				failed = false;
 				return savedState;
@@ -1870,21 +1935,21 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		/**
 		 * Adds a new waiter to wait queue.
 		 * 
-		 * @return its new wait node
+		 * @return its new wait node 新加入的等待Node（即等待队列中最后一个Node，也即lastWaiter）
 		 */
 		private Node addConditionWaiter() {
-			Node t = lastWaiter;
+			Node t = lastWaiter; // lastWaiter节点可能已经取消等待了
 			// If lastWaiter is cancelled, clean out.
-			if (t != null && t.waitStatus != Node.CONDITION) {
+			if (t != null && t.waitStatus != Node.CONDITION) { // 最后一个Node取消等待
 				unlinkCancelledWaiters();
-				t = lastWaiter;
+				t = lastWaiter; // 进过unlinkCancelledWaiters方法之后，lastWaiter节点一定是一个未取消等待的Node
 			}
 			Node node = new Node(Thread.currentThread(), Node.CONDITION);
 			if (t == null)
 				firstWaiter = node;
 			else
 				t.nextWaiter = node;
-			lastWaiter = node;
+			lastWaiter = node; // 新加入到等待队列的Node是有效的（即waitStatus=Node.CONDITION）
 			return node;
 		}
 
@@ -1921,6 +1986,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		}
 
 		/**
+		 * 遍历整个条件队列，然后会将已取消的所有节点清除出队列<br/>
+		 * 条件等待队列是一个单向链表，遍历链表将已经取消等待的节点清除出去<br/>
+		 * 
 		 * Unlinks cancelled waiter nodes from condition queue. Called only
 		 * while holding lock. This is called when cancellation occurred during
 		 * condition wait, and upon insertion of a new waiter when lastWaiter is
@@ -1933,7 +2001,7 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		 * cancellation storms.
 		 */
 		private void unlinkCancelledWaiters() {
-			Node t = firstWaiter;
+			Node t = firstWaiter; // 从等待队列的头开始往尾遍历
 			Node trail = null;
 			while (t != null) {
 				Node next = t.nextWaiter;
@@ -2039,6 +2107,9 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		}
 
 		/**
+		 * 调用该方法之前，当前线程必须先占有锁<br/>
+		 * 当前线程释放CPU执行权、且释放锁，进入阻塞状态（即线程挂起，等待被锁唤醒）<br/>
+		 * 
 		 * Implements interruptible condition wait.
 		 * <ol>
 		 * <li>If current thread is interrupted, throw InterruptedException.
@@ -2055,14 +2126,19 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 		public final void await() throws InterruptedException {
 			if (Thread.interrupted())
 				throw new InterruptedException();
-			Node node = addConditionWaiter();
-			int savedState = fullyRelease(node);
+			Node node = addConditionWaiter(); // 当前线程封装成Node，加入到条件队列的尾部，返回当前的Node（即等待队列中最后一个Node）
+			int savedState = fullyRelease(node); // 完全释放独占锁（锁的state属性值等于0），锁释放失败，则将node的waitStatus属性值更改为1（即线程取消等待），并抛出IllegalMonitorStateException运行时异常
 			int interruptMode = 0;
 			while (!isOnSyncQueue(node)) {
-				VkLockSupport.park(this);
-				if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
+				VkLockSupport.park(this); // 挂起当前线程（即线程释放CPU执行权），this是当前Condition对象（即当前线程的同步对象）
+				// 线程挂起后，被唤醒的三种情况：unpark出现、线程被中断、timeout时间到期
+				if ((interruptMode = checkInterruptWhileWaiting(node)) != 0){
+					// 如果线程中断，则跳出循环；
 					break;
+				}
 			}
+			
+			// 挂起的线程被唤醒后，不会马上执行，而是需要再次获取到锁，获取到锁之后，线程进入到可运行状态（在获取到CPU执行权后，线程才会运行）
 			if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
 				interruptMode = REINTERRUPT;
 			if (node.nextWaiter != null) // clean up if cancelled
@@ -2309,7 +2385,7 @@ public abstract class VkAbstractQueuedSynchronizer extends VkAbstractOwnableSync
 	/**
 	 * CAS head field. Used only by enq.
 	 */
-	private final boolean compareAndSetHead(Node update) {
+	private final boolean compareAndSetHead(Node update) { // 初始化head
 		return unsafe.compareAndSwapObject(this, headOffset, null, update);
 	}
 
